@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: copilot-config
+  namespace: support-copilot
+data:
+  COPILOT_MOCK_ORDERS: "true"
+  COPILOT_GENERATOR_URL: http://generator:8000/v1
+  COPILOT_ROUTER_URL: http://router:8000/v1
+  COPILOT_EMBEDDING_URL: http://embedding:8000
+  COPILOT_RERANKER_URL: http://reranker:8000
+  COPILOT_NLI_URL: http://nli:8000
+  COPILOT_ELASTICSEARCH_URL: http://elasticsearch:9200
+  COPILOT_REDIS_URL: redis://redis:6379/0
+  COPILOT_KAFKA_BOOTSTRAP: kafka:9092
+  COPILOT_KB_VERSION: demo-v1
+  COPILOT_RERANK_THRESHOLD: "0.65"
+  COPILOT_NLI_THRESHOLD: "0.8"
+  HF_HOME: /models/huggingface

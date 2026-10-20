@@ -1,0 +1,11 @@
+{
+  "event_id": "demo-kb-common-1",
+  "document_id": "common-refund",
+  "version": 1,
+  "title": "Общие принципы возврата — синтетический пример",
+  "content": "Для возврата уточните билет и условия его тарифа. Условия зависят от перевозчика и вида транспорта. Перед подтверждением возврата проверьте условия в заказе. Это учебный документ, а не правила реального сервиса.",
+  "content_type": "text/plain",
+  "vertical": "common",
+  "public": true,
+  "source": "demo://knowledge/common-refund"
+}

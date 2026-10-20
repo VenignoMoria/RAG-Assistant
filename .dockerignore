@@ -1,0 +1,9 @@
+.git
+.venv
+work
+outputs
+artifacts
+__pycache__
+**/__pycache__
+.env
+mlruns

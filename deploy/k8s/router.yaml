@@ -1,0 +1,124 @@
+{
+  "apiVersion": "apps/v1",
+  "kind": "Deployment",
+  "metadata": {
+    "name": "router",
+    "namespace": "support-copilot"
+  },
+  "spec": {
+    "replicas": 1,
+    "revisionHistoryLimit": 3,
+    "strategy": {
+      "type": "RollingUpdate",
+      "rollingUpdate": {
+        "maxSurge": 0,
+        "maxUnavailable": 1
+      }
+    },
+    "selector": {
+      "matchLabels": {
+        "app": "router"
+      }
+    },
+    "template": {
+      "metadata": {
+        "labels": {
+          "app": "router"
+        }
+      },
+      "spec": {
+        "containers": [
+          {
+            "name": "router",
+            "image": "ghcr.io/your-org/support-copilot-router:0.1.0",
+            "imagePullPolicy": "IfNotPresent",
+            "envFrom": [
+              {
+                "configMapRef": {
+                  "name": "copilot-config"
+                }
+              },
+              {
+                "secretRef": {
+                  "name": "copilot-secrets"
+                }
+              }
+            ],
+            "ports": [
+              {
+                "containerPort": 8000,
+                "name": "http"
+              }
+            ],
+            "resources": {
+              "requests": {
+                "cpu": "2",
+                "memory": "8Gi",
+                "nvidia.com/gpu": 1
+              },
+              "limits": {
+                "cpu": "8",
+                "memory": "24Gi",
+                "nvidia.com/gpu": 1
+              }
+            },
+            "readinessProbe": {
+              "httpGet": {
+                "path": "/health",
+                "port": "http"
+              },
+              "periodSeconds": 10,
+              "timeoutSeconds": 5
+            },
+            "livenessProbe": {
+              "httpGet": {
+                "path": "/health",
+                "port": "http"
+              },
+              "periodSeconds": 30,
+              "timeoutSeconds": 5,
+              "failureThreshold": 5
+            },
+            "startupProbe": {
+              "httpGet": {
+                "path": "/health",
+                "port": "http"
+              },
+              "periodSeconds": 10,
+              "failureThreshold": 180
+            },
+            "volumeMounts": [
+              {
+                "name": "models",
+                "mountPath": "/models"
+              },
+              {
+                "name": "shm",
+                "mountPath": "/dev/shm"
+              }
+            ]
+          }
+        ],
+        "terminationGracePeriodSeconds": 120,
+        "volumes": [
+          {
+            "name": "models",
+            "persistentVolumeClaim": {
+              "claimName": "model-cache"
+            }
+          },
+          {
+            "name": "shm",
+            "emptyDir": {
+              "medium": "Memory",
+              "sizeLimit": "8Gi"
+            }
+          }
+        ],
+        "nodeSelector": {
+          "nvidia.com/gpu.product": "NVIDIA-L4"
+        }
+      }
+    }
+  }
+}

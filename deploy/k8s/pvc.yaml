@@ -1,0 +1,10 @@
+# Требуется StorageClass с поддержкой RWX. Модели prewarm отдельным процессом.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: model-cache
+  namespace: support-copilot
+spec:
+  accessModes: [ReadWriteMany]
+  resources:
+    requests: {storage: 160Gi}

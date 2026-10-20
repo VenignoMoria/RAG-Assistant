@@ -1,0 +1,50 @@
+name: Controlled router serving release
+on:
+  workflow_dispatch:
+    inputs:
+      evaluation_run_id: {description: 'Successful Model evaluation run for this commit', required: true, type: string}
+      image: {description: 'Router serving image including sha256 digest and bundled model', required: true, type: string}
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: router-model-release
+  cancel-in-progress: false
+jobs:
+  release:
+    runs-on: [self-hosted, linux, copilot-deploy]
+    environment: production-models
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.11'}
+      - name: Verify evaluation run and download report
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RUN_ID: ${{ inputs.evaluation_run_id }}
+        shell: bash
+        run: |
+          [[ "$RUN_ID" =~ ^[0-9]+$ ]]
+          gh api "repos/$GH_REPO/actions/runs/$RUN_ID" > run.json
+          python -c 'import json,os; r=json.load(open("run.json")); assert r["conclusion"]=="success" and r["name"]=="Model evaluation" and r["head_sha"]==os.environ["GITHUB_SHA"] and r["event"]=="workflow_dispatch"'
+          gh run download "$RUN_ID" --name model-evaluation --dir artifacts
+      - name: Verify immutable image and report
+        env:
+          IMAGE: ${{ inputs.image }}
+        run: |
+          python -c 'import json,os,re; i=os.environ["IMAGE"]; assert re.fullmatch(r"ghcr.io/[a-z0-9_./-]+@sha256:[0-9a-f]{64}",i); p=json.load(open("artifacts/provenance.json")); assert p["digest"]==i.split("@")[1] and p["sha"]==os.environ["GITHUB_SHA"]'
+          python -m evaluation.check_release artifacts/router-comparison.json --min-accuracy 0.9 --max-wrong-ticket-rate 0
+      - name: Update only router deployment
+        env:
+          KUBE_CONFIG: ${{ secrets.KUBE_CONFIG_MODELS }}
+          IMAGE: ${{ inputs.image }}
+        shell: bash
+        run: |
+          umask 077
+          config=$(mktemp)
+          trap 'rm -f "$config"' EXIT
+          printf '%s' "$KUBE_CONFIG" > "$config"
+          export KUBECONFIG="$config"
+          kubectl -n support-copilot set image deployment/router "router=$IMAGE"
+          kubectl -n support-copilot rollout status deployment/router --timeout=1800s

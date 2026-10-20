@@ -1,0 +1,124 @@
+support-copilot-rag/
+├── .github/
+│   └── workflows/
+│       ├── ci.yml
+│       ├── fastapi-cd.yml
+│       ├── model-evaluation.yml
+│       └── model-release.yml
+├── contracts/
+│   └── order-api.yaml
+├── data/
+│   └── knowledge/
+│       └── refund_common.json
+├── deploy/
+│   ├── k8s/
+│   │   ├── configmap.yaml
+│   │   ├── embedding-service.yaml
+│   │   ├── embedding.yaml
+│   │   ├── fastapi-service.yaml
+│   │   ├── fastapi.yaml
+│   │   ├── feedback.yaml
+│   │   ├── generator-service.yaml
+│   │   ├── generator.yaml
+│   │   ├── ingestion.yaml
+│   │   ├── namespace.yaml
+│   │   ├── network-policy.yaml
+│   │   ├── nli-service.yaml
+│   │   ├── nli.yaml
+│   │   ├── pvc.yaml
+│   │   ├── reranker-service.yaml
+│   │   ├── reranker.yaml
+│   │   ├── router-service.yaml
+│   │   ├── router.yaml
+│   │   └── secret.example.yaml
+│   └── prometheus/
+│       └── prometheus.yml
+├── docker/
+│   ├── embedding.Dockerfile
+│   ├── fastapi.Dockerfile
+│   ├── generator.Dockerfile
+│   ├── ingestion.Dockerfile
+│   ├── nli.Dockerfile
+│   ├── reranker.Dockerfile
+│   ├── router-release.Dockerfile
+│   ├── router-release.Dockerfile.dockerignore
+│   └── router.Dockerfile
+├── docs/
+│   ├── architecture.md
+│   ├── ci_cd.md
+│   ├── infrastructure.md
+│   ├── limitations.md
+│   ├── lo_ra_training.md
+│   ├── request_flow.md
+│   ├── retrieval.md
+│   ├── sources.md
+│   └── validation.md
+├── evaluation/
+│   ├── data/
+│   │   └── schema_example.jsonl
+│   ├── __init__.py
+│   ├── check_release.py
+│   └── rag_eval.py
+├── scripts/
+│   └── check_syntax.py
+├── src/
+│   ├── copilot/
+│   │   ├── clients/
+│   │   │   ├── __init__.py
+│   │   │   ├── models.py
+│   │   │   ├── order.py
+│   │   │   └── vllm.py
+│   │   ├── __init__.py
+│   │   ├── api.py
+│   │   ├── cache.py
+│   │   ├── config.py
+│   │   ├── domain.py
+│   │   ├── generation.py
+│   │   ├── observability.py
+│   │   ├── orchestrator.py
+│   │   ├── ports.py
+│   │   ├── retrieval.py
+│   │   ├── routing.py
+│   │   └── verification.py
+│   ├── ingestion/
+│   │   ├── __init__.py
+│   │   ├── chunking.py
+│   │   ├── index.py
+│   │   ├── producer.py
+│   │   └── worker.py
+│   ├── model_services/
+│   │   ├── __init__.py
+│   │   ├── embedding.py
+│   │   ├── nli.py
+│   │   ├── reranker.py
+│   │   ├── runtime.py
+│   │   └── schemas.py
+│   └── onnx_tools/
+│       ├── __init__.py
+│       ├── export.py
+│       └── inference.py
+├── tests/
+│   ├── __init__.py
+│   ├── test_ingestion.py
+│   ├── test_orchestrator.py
+│   ├── test_retrieval_cache.py
+│   ├── test_routing.py
+│   └── test_verification.py
+├── training/
+│   ├── data/
+│   │   ├── sample_train.jsonl
+│   │   └── sample_val.jsonl
+│   ├── __init__.py
+│   ├── config.yaml
+│   ├── evaluate_router.py
+│   ├── generate_synthetic_data.py
+│   ├── merge_adapter.py
+│   ├── prepare_dataset.py
+│   └── train_qlora.py
+├── .dockerignore
+├── .env.example
+├── .gitignore
+├── PROJECT_TREE.txt
+├── README.md
+├── docker-compose.yml
+└── pyproject.toml

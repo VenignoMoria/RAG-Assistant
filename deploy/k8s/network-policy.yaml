@@ -1,0 +1,17 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: internal-model-services
+  namespace: support-copilot
+spec:
+  podSelector:
+    matchExpressions:
+      - key: app
+        operator: In
+        values: [generator, router, embedding, reranker, nli]
+  policyTypes: [Ingress]
+  ingress:
+    - from:
+        - podSelector: {matchLabels: {app: fastapi}}
+        - podSelector: {matchLabels: {app: ingestion}}
+      ports: [{protocol: TCP, port: 8000}]

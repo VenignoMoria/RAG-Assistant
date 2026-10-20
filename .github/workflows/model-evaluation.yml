@@ -1,0 +1,36 @@
+name: Model evaluation
+on:
+  workflow_dispatch:
+    inputs:
+      baseline_url: {description: 'Trusted baseline /v1 endpoint', required: true, type: string}
+      candidate_url: {description: 'Trusted candidate /v1 endpoint', required: true, type: string}
+      candidate_model: {description: 'Serving model name', required: true, default: 'Qwen/Qwen2.5-1.5B-Instruct', type: string}
+      candidate_digest: {description: 'Exact immutable model-serving image digest sha256:...', required: true, type: string}
+permissions:
+  contents: read
+jobs:
+  evaluate:
+    runs-on: [self-hosted, linux, copilot-evaluation]
+    environment: model-evaluation
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: '3.11'}
+      - run: python -m pip install '.[evaluation]'
+      - name: Evaluate router baseline vs candidate
+        env:
+          BASELINE: ${{ inputs.baseline_url }}
+          CANDIDATE: ${{ inputs.candidate_url }}
+          CANDIDATE_MODEL: ${{ inputs.candidate_model }}
+        run: python -m training.evaluate_router --baseline-url "$BASELINE" --lora-url "$CANDIDATE" --lora-model "$CANDIDATE_MODEL"
+      - name: Quality gate (example thresholds, calibrate for your dataset)
+        run: python -m evaluation.check_release artifacts/router-comparison.json --min-accuracy 0.9 --max-wrong-ticket-rate 0
+      - name: Bind report to commit and image
+        env:
+          DIGEST: ${{ inputs.candidate_digest }}
+        run: |
+          python -c 'import json,os,re; d=os.environ["DIGEST"]; assert re.fullmatch(r"sha256:[0-9a-f]{64}",d); json.dump({"sha":os.environ["GITHUB_SHA"],"digest":d},open("artifacts/provenance.json","w"))'
+      - uses: actions/upload-artifact@v4
+        with:
+          name: model-evaluation
+          path: artifacts/*.json

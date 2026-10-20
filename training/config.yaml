@@ -1,0 +1,22 @@
+model: Qwen/Qwen2.5-1.5B-Instruct
+output_dir: artifacts/router-qlora
+train_file: training/data/sample_train.jsonl
+val_file: training/data/sample_val.jsonl
+seed: 42
+lora:
+  r: 16
+  alpha: 32
+  dropout: 0.05
+  target_modules: [q_proj, k_proj, v_proj, o_proj, gate_proj, up_proj, down_proj]
+quantization:
+  load_in_4bit: true
+  quant_type: nf4
+  double_quant: true
+training:
+  learning_rate: 0.0001
+  epochs: 3
+  microbatch: 2
+  gradient_accumulation: 8
+  max_length: 2048
+  warmup_ratio: 0.03
+  scheduler: cosine

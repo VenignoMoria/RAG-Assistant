@@ -1,0 +1,113 @@
+{
+  "apiVersion": "apps/v1",
+  "kind": "Deployment",
+  "metadata": {
+    "name": "feedback",
+    "namespace": "support-copilot"
+  },
+  "spec": {
+    "replicas": 1,
+    "revisionHistoryLimit": 3,
+    "strategy": {
+      "type": "RollingUpdate",
+      "rollingUpdate": {
+        "maxSurge": 1,
+        "maxUnavailable": 0
+      }
+    },
+    "selector": {
+      "matchLabels": {
+        "app": "feedback"
+      }
+    },
+    "template": {
+      "metadata": {
+        "labels": {
+          "app": "feedback"
+        }
+      },
+      "spec": {
+        "containers": [
+          {
+            "name": "feedback",
+            "image": "ghcr.io/your-org/support-copilot-ingestion:0.1.0",
+            "imagePullPolicy": "IfNotPresent",
+            "envFrom": [
+              {
+                "configMapRef": {
+                  "name": "copilot-config"
+                }
+              },
+              {
+                "secretRef": {
+                  "name": "copilot-secrets"
+                }
+              }
+            ],
+            "resources": {
+              "requests": {
+                "cpu": "250m",
+                "memory": "256Mi"
+              },
+              "limits": {
+                "cpu": "1",
+                "memory": "512Mi"
+              }
+            },
+            "readinessProbe": {
+              "exec": {
+                "command": [
+                  "python",
+                  "-c",
+                  "from pathlib import Path; assert Path('/tmp/worker-ready').exists()"
+                ]
+              },
+              "periodSeconds": 10
+            },
+            "livenessProbe": {
+              "exec": {
+                "command": [
+                  "python",
+                  "-c",
+                  "import os; os.kill(1, 0)"
+                ]
+              },
+              "periodSeconds": 30
+            },
+            "startupProbe": {
+              "exec": {
+                "command": [
+                  "python",
+                  "-c",
+                  "from pathlib import Path; assert Path('/tmp/worker-ready').exists()"
+                ]
+              },
+              "periodSeconds": 10,
+              "failureThreshold": 60
+            },
+            "env": [
+              {
+                "name": "WORKER_MODE",
+                "value": "feedback"
+              }
+            ],
+            "securityContext": {
+              "allowPrivilegeEscalation": false,
+              "capabilities": {
+                "drop": [
+                  "ALL"
+                ]
+              }
+            }
+          }
+        ],
+        "terminationGracePeriodSeconds": 120,
+        "securityContext": {
+          "runAsNonRoot": true,
+          "runAsUser": 10001,
+          "fsGroup": 10001
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,124 @@
+{
+  "apiVersion": "apps/v1",
+  "kind": "Deployment",
+  "metadata": {
+    "name": "generator",
+    "namespace": "support-copilot"
+  },
+  "spec": {
+    "replicas": 2,
+    "revisionHistoryLimit": 3,
+    "strategy": {
+      "type": "RollingUpdate",
+      "rollingUpdate": {
+        "maxSurge": 0,
+        "maxUnavailable": 1
+      }
+    },
+    "selector": {
+      "matchLabels": {
+        "app": "generator"
+      }
+    },
+    "template": {
+      "metadata": {
+        "labels": {
+          "app": "generator"
+        }
+      },
+      "spec": {
+        "containers": [
+          {
+            "name": "generator",
+            "image": "ghcr.io/your-org/support-copilot-generator:0.1.0",
+            "imagePullPolicy": "IfNotPresent",
+            "envFrom": [
+              {
+                "configMapRef": {
+                  "name": "copilot-config"
+                }
+              },
+              {
+                "secretRef": {
+                  "name": "copilot-secrets"
+                }
+              }
+            ],
+            "ports": [
+              {
+                "containerPort": 8000,
+                "name": "http"
+              }
+            ],
+            "resources": {
+              "requests": {
+                "cpu": "8",
+                "memory": "32Gi",
+                "nvidia.com/gpu": 1
+              },
+              "limits": {
+                "cpu": "16",
+                "memory": "64Gi",
+                "nvidia.com/gpu": 1
+              }
+            },
+            "readinessProbe": {
+              "httpGet": {
+                "path": "/health",
+                "port": "http"
+              },
+              "periodSeconds": 10,
+              "timeoutSeconds": 5
+            },
+            "livenessProbe": {
+              "httpGet": {
+                "path": "/health",
+                "port": "http"
+              },
+              "periodSeconds": 30,
+              "timeoutSeconds": 5,
+              "failureThreshold": 5
+            },
+            "startupProbe": {
+              "httpGet": {
+                "path": "/health",
+                "port": "http"
+              },
+              "periodSeconds": 10,
+              "failureThreshold": 180
+            },
+            "volumeMounts": [
+              {
+                "name": "models",
+                "mountPath": "/models"
+              },
+              {
+                "name": "shm",
+                "mountPath": "/dev/shm"
+              }
+            ]
+          }
+        ],
+        "terminationGracePeriodSeconds": 120,
+        "volumes": [
+          {
+            "name": "models",
+            "persistentVolumeClaim": {
+              "claimName": "model-cache"
+            }
+          },
+          {
+            "name": "shm",
+            "emptyDir": {
+              "medium": "Memory",
+              "sizeLimit": "8Gi"
+            }
+          }
+        ],
+        "nodeSelector": {
+          "nvidia.com/gpu.product": "NVIDIA-A100-SXM4-80GB"
+        }
+      }
+    }
+  }
+}

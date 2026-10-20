@@ -1,0 +1,48 @@
+openapi: 3.1.0
+info:
+  title: Educational Order API contract — not a real corporate endpoint
+  version: 0.1.0
+paths:
+  /trips/{trip_id}:
+    get:
+      security: [{serviceAuth: []}]
+      parameters:
+        - name: trip_id
+          in: path
+          required: true
+          schema: {type: string}
+        - name: X-Operator-ID
+          in: header
+          required: true
+          schema: {type: string}
+      responses:
+        '200':
+          description: Minimal trip after operator ACL validation
+          content:
+            application/json:
+              schema: {$ref: '#/components/schemas/Trip'}
+        '403': {description: Operator cannot access this trip}
+        '404': {description: Trip not found}
+components:
+  securitySchemes:
+    serviceAuth: {type: http, scheme: bearer}
+  schemas:
+    Ticket:
+      type: object
+      additionalProperties: false
+      required: [ticket_id, vertical, route, departure_date, status]
+      properties:
+        ticket_id: {type: string}
+        vertical: {type: string, enum: [avia, rail, bus]}
+        route: {type: string}
+        departure_date: {type: string, format: date}
+        status: {type: string}
+    Trip:
+      type: object
+      additionalProperties: false
+      required: [trip_id, tickets]
+      properties:
+        trip_id: {type: string}
+        tickets:
+          type: array
+          items: {$ref: '#/components/schemas/Ticket'}
